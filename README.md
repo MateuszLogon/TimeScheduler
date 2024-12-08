@@ -1,1 +1,1 @@
-Application for scheduling time for game sessions with friends.
+Application for scheduling time for game sessions with friends .
