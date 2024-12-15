@@ -74,18 +74,30 @@ WSGI_APPLICATION = 'TimeScheduler.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+DATABASE_ROUTERS = ["TimeScheduler.db_router.PrimaryReplicaRouter"]
+
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'db_default',
+    },
+    'db-primary': {
         'ENGINE': 'django.db.backends.mysql',  
-        'NAME': 'timeschedulerdatabase',  
-        'USER': 'new_user',  
-        'PASSWORD': 'password',  
+        'NAME': 'timescheduler_master',  
+        'USER': 'root',  
+        'PASSWORD': 'root',  
         'HOST': '127.0.0.1',  
         'PORT': '3306',  
+    },
+    'db-replica': {
+        'ENGINE': 'django.db.backends.mysql',  
+        'NAME': 'timescheduler_slave',  
+        'USER': 'root',  
+        'PASSWORD': 'root',  
+        'HOST': '127.0.0.1',  
+        'PORT': '3307',  
     }
 }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
