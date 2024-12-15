@@ -78,8 +78,6 @@ DATABASE_ROUTERS = ["TimeScheduler.db_router.PrimaryReplicaRouter"]
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db_default',
     },
     'db-primary': {
         'ENGINE': 'django.db.backends.mysql',  
