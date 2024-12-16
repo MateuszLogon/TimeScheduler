@@ -3,3 +3,5 @@ polls
 TimeScheduler/__pycache__
 events/__pycache__
 events/migrations/__pycache__
+MasterQueries.sql
+SlaveQueries.sql

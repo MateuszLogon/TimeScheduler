@@ -81,19 +81,19 @@ DATABASES = {
     },
     'db-primary': {
         'ENGINE': 'django.db.backends.mysql',  
-        'NAME': 'timescheduler_master',  
+        'NAME': 'timescheduler',  
         'USER': 'root',  
         'PASSWORD': 'root',  
         'HOST': '127.0.0.1',  
-        'PORT': '3306',  
+        'PORT': '50400',  
     },
     'db-replica': {
         'ENGINE': 'django.db.backends.mysql',  
-        'NAME': 'timescheduler_slave',  
+        'NAME': 'timescheduler',  
         'USER': 'root',  
         'PASSWORD': 'root',  
         'HOST': '127.0.0.1',  
-        'PORT': '3307',  
+        'PORT': '50401',  
     }
 }
 

@@ -3,12 +3,14 @@ name: TimeScheduler
 services:
   mysql-primary:
     image: mysql:latest
-    container_name: db-primary
+    container_name: mysql-primary
+    command: --server-id=1 --log-bin=mysql-bin --binlog-format=row
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: timescheduler_master
+      MYSQL_DATABASE: timescheduler
+      MYSQL_TCP_PORT: 50400
     ports: 
-      - "3306:3306"
+      - "50400:50400"
     volumes:
       - master_data:/var/lib/mysql
     networks:
@@ -16,13 +18,16 @@ services:
 
   mysql-replica:
     image: mysql:latest
-    container_name: db-replica
+    container_name: mysql-replica
+    depends_on:
+      - mysql-primary
+    command: --server-id=2 --log-bin=mysql-bin --binlog-format=row
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: timescheduler_slave
-      MYSQL_TCP_PORT: 3307
+      MYSQL_DATABASE: timescheduler
+      MYSQL_TCP_PORT: 50401
     ports: 
-      - "3307:3307"
+      - "50401:50401"
     volumes:
       - slave_data:/var/lib/mysql
     networks:
