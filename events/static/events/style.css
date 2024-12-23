@@ -1,0 +1,43 @@
+body {
+    background-color: #f0f8ff; /* Delikatny niebieski odcień tła */
+    font-family: Arial, sans-serif;
+}
+.container {
+    text-align: center;
+    margin-top: 50px;
+}
+h1 {
+    font-size: 36px;
+    color: #333; /* Kolor tytułu */
+}
+h2 {
+    font-size: 24px;
+    color: #666; /* Kolor tekstu pod tytułem */
+}
+form {
+    margin-top: 30px;
+}
+label {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+input {
+    font-size: 16px;
+    padding: 8px;
+    margin-bottom: 15px;
+    width: 250px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+button {
+    font-size: 16px;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #45a049;
+}
