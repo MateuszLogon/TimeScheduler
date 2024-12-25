@@ -15,6 +15,7 @@
         <h2>Please enter your name and email address to proceed</h2>
 
         <form id="userForm">
+            {% csrf_token %}
             <label for="name">Name:</label><br>
             <input type="text" id="name" name="name"><br><br>
             <label for="email">Email:</label><br>
@@ -30,20 +31,34 @@
             let name = document.getElementById('name').value;
             let email = document.getElementById('email').value;
 
-            fetch('/send_user_data/', {
+            const csrftoken = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+
+            fetch('/event/send_user_data/', {
                 method: 'POST',
                 body: new URLSearchParams({
                     'name': name,
                     'email': email
                 }),
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken 
                 }
             })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('CSRF verification failed or other error occurred');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     console.log('Name: ' + data.name);
                     console.log('Email: ' + data.email);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                 });
         });
     </script>
