@@ -12,14 +12,14 @@
 <body>
     <div class="container">
         <h1>Time Scheduler</h1>
-        <h2>Wprowadź imię i adres email, aby przejść dalej</h2>
+        <h2>Please enter your name and email address to proceed</h2>
 
         <form id="userForm">
-            <label for="name">Imię:</label><br>
+            <label for="name">Name:</label><br>
             <input type="text" id="name" name="name"><br><br>
             <label for="email">Email:</label><br>
             <input type="email" id="email" name="email"><br><br>
-            <button type="submit">Wyślij</button>
+            <button type="submit">Send</button>
         </form>
     </div>
     <script src="{% static 'events/jquery-3.7.1.min.js' %}"></script>
@@ -42,7 +42,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Imię: ' + data.name);
+                    console.log('Name: ' + data.name);
                     console.log('Email: ' + data.email);
                 });
         });
