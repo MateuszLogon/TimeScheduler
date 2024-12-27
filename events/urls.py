@@ -3,7 +3,6 @@ from . import views
 
 app_name = "events"
 urlpatterns = [
-    path("", views.index, name="index"),
-    path('send_user_data/', views.send_user_data, name='send_user_data'),
+    path('create_user/', views.create_user, name='create_user'),
     
 ]
