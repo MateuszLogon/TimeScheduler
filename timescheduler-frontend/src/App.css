@@ -1,3 +1,5 @@
+
+/* Style dla TimeSchedulerLogin */
 .App {
   text-align: center;
   margin-top: 50px;
@@ -39,3 +41,96 @@ button {
 button:hover {
   background-color: #45a049;
 }
+
+/* Style dla VotingPage */
+.voting-page {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  text-align: center; /* Wyśrodkowanie tekstu */
+}
+
+.tiles-container {
+  display: flex;
+  flex-direction: column; /* Ustawienie układu elementów w kolumnie */
+  gap: 20px; /* Odstęp między prostokątami */
+  justify-content: center; /* Wyśrodkowanie kontenera */
+  margin-top: 30px;
+}
+
+/* Główny kontener prostokąta */
+/* Główny prostokąt */
+.tile {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  width: 600px; /* Szerokość prostokąta */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 5px auto; /* Zmniejszono odstęp między dużymi prostokątami */
+  display: flex; /* Flexbox do ułożenia elementów obok siebie */
+  flex-direction: row; /* Ustawienie elementów w jednym wierszu */
+  gap: 15px; /* Zmniejszono odstęp między elementami */
+  align-items: center; /* Wyśrodkowanie w pionie */
+  position: relative;
+  height: 20px; /* Zmniejszenie wysokości głównego prostokąta */
+}
+
+/* Sekcja .time-info, z pionową linią między elementami */
+.time-info {
+  display: flex; /* Wszystkie elementy w jednym wierszu */
+  justify-content: space-between; /* Równomierne rozmieszczenie elementów */
+  align-items: center; /* Wyśrodkowanie elementów w pionie */
+  flex: 2; /* Zajmuje więcej przestrzeni niż przyciski */
+  padding-right: 20px; /* Odstęp od prawej krawędzi */
+  position: relative;
+  height: 100%; /* Rozciągnięcie na pełną wysokość .tile */
+}
+
+/* Pionowa linia dla każdego elementu w .time-info */
+.time-info > * {
+  border-right: 2px solid #ddd; /* Pionowa kreska między elementami */
+  padding-right: 20px; /* Padding aby dodać przestrzeń do prawej krawędzi */
+  height: 100%; /* Linia będzie rozciągała się na pełną wysokość */
+}
+
+/* Sekcja z przyciskami */
+.vote-buttons {
+  display: flex; /* Układ przycisków w jednej linii */
+  justify-content: space-between; /* Rozmieszczenie przycisków na całej szerokości */
+  gap: 10px; /* Odstęp między przyciskami */
+  align-items: center; /* Wyśrodkowanie w pionie */
+  margin-right: 20px; /* Odstęp od prawej krawędzi */
+  padding-left: 20px; /* Padding od lewej strony przycisków */
+  height: 100%; /* Rozciągnięcie na pełną wysokość .tile */
+}
+
+/* Pionowa linia oddzielająca przyciski */
+.vote-buttons::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #ddd; /* Kolor linii */
+}
+
+/* Przyciski */
+.vote-buttons button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap; /* Zapobiega zawijaniu tekstu w przyciskach */
+}
+
+.vote-buttons button:first-child {
+  background-color: #4caf50;
+  color: white;
+}
+
+.vote-buttons button:last-child {
+  background-color: #f44336;
+  color: white;
+}
+
