@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+// import { BrowserRouter as Router, Route, Routes, useNavigate, useParams } from 'react-router-dom';
+
+
+// Funkcja do sprawdzania sesji
 async function CheckSession(event_id) {
   try {
     const response = await fetch('http://localhost:8000/api/' + event_id, {
@@ -16,11 +22,14 @@ async function CheckSession(event_id) {
   }
 }
 
+// Komponent JoinSession
 function JoinSession({ event_id }) {
   const [sessionExists, setSessionExists] = useState(null); // Przechowywanie stanu sesji
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+
 
   // Sprawdź sesję po załadowaniu komponentu
   useEffect(() => {
@@ -34,9 +43,8 @@ function JoinSession({ event_id }) {
   // Funkcja obsługująca wysyłanie formularza
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const formData = { name, email };
-
+  
     fetch('http://localhost:8000/api/create_user/', {
       method: 'POST',
       headers: {
@@ -47,7 +55,7 @@ function JoinSession({ event_id }) {
       .then((response) => response.json())
       .then((data) => {
         if (data.message) {
-          setMessage(data.message)
+          navigate(`/voting_page/${event_id}`);  
         } else {
           setMessage('An error occurred. Please try again.');
         }
@@ -65,7 +73,7 @@ function JoinSession({ event_id }) {
   if (sessionExists) {
     return (
       <div className="App">
-        <h1>Welcome to the App</h1>
+        <h1>Time Scheduler</h1>
         <form onSubmit={handleSubmit}>
           <div>
             <label>
@@ -104,10 +112,59 @@ function JoinSession({ event_id }) {
   }
 }
 
-function CreateSession() {
+function VotingPage() {
+  const { event_id } = useParams();  // Pobieranie event_id z URL
+  const [proposedTimes, setProposedTimes] = useState([]);
 
+  useEffect(() => {
+    async function fetchProposedTimes() {
+      try {
+        const response = await fetch(`http://localhost:8000/api/event/${event_id}/proposed_times`);
+        if (response.ok) {
+          const data = await response.json();
+          setProposedTimes(data); // Ustawienie danych o czasach
+        } else {
+          console.error('Failed to fetch proposed times');
+        }
+      } catch (error) {
+        console.error('Error fetching proposed times:', error);
+      }
+    }
+
+    fetchProposedTimes();
+  }, [event_id]); // Zależność od event_id
+
+  return (
+    <div className="voting-page">
+      <h1>Voting Page</h1>
+      <div className="tiles-container">
+        {proposedTimes.map(time => (
+          <div key={time.time_id} className="tile">
+            <div className="time-info">
+              <p>{time.day} {time.day_number} {time.month} {time.year}</p>
+              <p>{time.start_time} - {time.end_time}</p>
+            </div>
+            <div className="vote-buttons">
+              <button>Yes</button>
+              <button>No</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
+// Komponent główny - App
 export default function App() {
-  return (<JoinSession event_id={1} />)
+  return (
+    <Router>
+      <Routes>
+        {/* Główna ścieżka */}
+        <Route path="/" element={<JoinSession event_id={1} />} />
+        {/* Ścieżka do Voting Page z dynamicznym parametrem event_id */}
+        <Route path="/voting_page/:event_id" element={<VotingPage />} />
+      </Routes>
+    </Router>
+  );
 }
