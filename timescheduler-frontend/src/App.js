@@ -16,7 +16,7 @@ async function CheckSession(event_id) {
   }
 }
 
-export default function App() {
+function JoinSession({ event_id }) {
   const [sessionExists, setSessionExists] = useState(null); // Przechowywanie stanu sesji
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -25,11 +25,11 @@ export default function App() {
   // Sprawdź sesję po załadowaniu komponentu
   useEffect(() => {
     const checkSession = async () => {
-      const result = await CheckSession(1);
+      const result = await CheckSession(event_id);
       setSessionExists(result); // Ustaw stan na true lub false
     };
     checkSession();
-  }, []);
+  }, [event_id]);
 
   // Funkcja obsługująca wysyłanie formularza
   const handleSubmit = (e) => {
@@ -102,4 +102,12 @@ export default function App() {
   } else {
     return <div>Session not found. Please log in.</div>;
   }
+}
+
+function CreateSession() {
+
+}
+
+export default function App() {
+  return (<JoinSession event_id={1} />)
 }
