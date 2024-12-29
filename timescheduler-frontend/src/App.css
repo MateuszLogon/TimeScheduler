@@ -134,3 +134,8 @@ button:hover {
   color: white;
 }
 
+.button-highlight {
+  border: 20px solid blue; /* Kolor obramowania */
+  border-radius: 5px;    /* Zaokrąglenie krawędzi (opcjonalne) */
+  box-shadow: 0 0 5px blue; /* Efekt podświetlenia (opcjonalne) */
+}

@@ -8,6 +8,53 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from .models import ProposedTime
 from datetime import timedelta
+from django.views.decorators.csrf import csrf_exempt
+from .models import ProposedTime, Vote, Participant, User
+import json
+
+
+@csrf_exempt
+def submit_votes(request, event_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            print(f"Received data: {data}")  # Zaloguj otrzymane dane
+
+            votes = data.get('votes', [])  # Oczekujemy, że votes będzie listą, a nie słownikiem
+            user_id = data.get('user_id')
+
+            # Sprawdź, czy użytkownik istnieje
+            try:
+                user = User.objects.get(user_id=user_id)
+            except User.DoesNotExist:
+                return JsonResponse({"error": "User not found"}, status=404)
+            
+            # Przetwarzanie głosów (teraz jest to lista, a nie słownik)
+            for vote_entry in votes:
+                time_id = vote_entry.get('time_id')
+                vote = vote_entry.get('vote')
+
+                if not time_id or not vote:
+                    continue  # Jeśli brakuje czasu lub głosu, pomijamy ten wpis
+
+                try:
+                    proposed_time = ProposedTime.objects.get(time_id=time_id)
+                except ProposedTime.DoesNotExist:
+                    return JsonResponse({"error": f"Proposed time with id {time_id} not found"}, status=404)
+                
+                # Aktualizuj lub twórz nowy głos
+                Vote.objects.update_or_create(
+                    user=user,
+                    proposed_time=proposed_time,
+                    defaults={'is_available': vote == 'yes'}  # Zapisujemy `True` dla 'yes', `False` dla 'no'
+                )
+
+            return JsonResponse({"message": "Votes submitted successfully"})
+        
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+        
+    return JsonResponse({"error": "Invalid request method"}, status=400)
 
 
 
@@ -40,11 +87,15 @@ def check_session(request, event_id):
 def create_user(request):
     if request.method == 'POST':
         user = UserSerializer(data=request.data)
+        
         if user.is_valid():
             try:
-                user.save()  
-                return JsonResponse({'message': f'User created successfully!'}, status=status.HTTP_201_CREATED)
-            except Event.DoesNotExist:
-                return JsonResponse(user.errors, status=status.HTTP_400_BAD_REQUEST)
+                new_user = user.save()
+                print(f"User created with user_id: {new_user.user_id}")
+
+                return JsonResponse({'message': 'User created successfully!', 'user_id': new_user.user_id}, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                print(f"Error creating user: {str(e)}")
+                return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return JsonResponse({'message': 'User already exists!'}, status=status.HTTP_226_IM_USED)

@@ -3,8 +3,6 @@ import './App.css';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
-// import { BrowserRouter as Router, Route, Routes, useNavigate, useParams } from 'react-router-dom';
-
 
 // Funkcja do sprawdzania sesji
 async function CheckSession(event_id) {
@@ -54,14 +52,18 @@ function JoinSession({ event_id }) {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.message) {
-          navigate(`/voting_page/${event_id}`);  
+        console.log("Response data:", data); 
+        if (data.message === 'User created successfully!') {
+          // Zapisz user_id w localStorage
+          localStorage.setItem('user_id', data.user_id);
+          // Przejdź do strony głosowania
+          navigate(`/voting_page/${event_id}`);
         } else {
-          setMessage('An error occurred. Please try again.');
+          setMessage('Server did not recive user_id');
         }
       })
       .catch((error) => {
-        setMessage('An error occurred. Please try again.');
+        setMessage('An error occurred. Please try again111.');
       });
   };
 
@@ -115,6 +117,7 @@ function JoinSession({ event_id }) {
 function VotingPage() {
   const { event_id } = useParams();  // Pobieranie event_id z URL
   const [proposedTimes, setProposedTimes] = useState([]);
+  const [selectedButtons, setSelectedButtons] = useState({});
 
   useEffect(() => {
     async function fetchProposedTimes() {
@@ -134,6 +137,51 @@ function VotingPage() {
     fetchProposedTimes();
   }, [event_id]); // Zależność od event_id
 
+  const handleVoteClick = (timeId, voteType) => {
+    setSelectedButtons(prevState => ({
+      ...prevState,
+      [timeId]: voteType, // Zapisz wybór dla danego `timeId`
+    }));
+  };
+
+  const handleSubmitVotes = async () => {
+    const user_id = localStorage.getItem('user_id');  // Pobranie user_id z localStorage
+    if (!user_id) {
+      alert('User not logged in');
+      return;
+    }
+  
+    const votes = Object.keys(selectedButtons).map(timeId => ({
+      time_id: timeId,
+      vote: selectedButtons[timeId],
+    }));
+  
+    const requestData = {
+      user_id: user_id,
+      votes: votes,
+    };
+  
+    try {
+      const response = await fetch(`http://localhost:8000/api/event/${event_id}/submit_votes/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+  
+      if (response.ok) {
+        const responseData = await response.json();
+        alert(responseData.message || 'Votes submitted successfully');
+      } else {
+        alert('Failed to submit votes');
+      }
+    } catch (error) {
+      console.error('Error submitting votes:', error);
+      alert('Error submitting votes');
+    }
+  };
+  
   return (
     <div className="voting-page">
       <h1>Voting Page</h1>
@@ -145,12 +193,23 @@ function VotingPage() {
               <p>{time.start_time} - {time.end_time}</p>
             </div>
             <div className="vote-buttons">
-              <button>Yes</button>
-              <button>No</button>
+              <button
+                className={selectedButtons[time.time_id] === 'yes' ? 'button-highlight' : ''}
+                onClick={() => handleVoteClick(time.time_id, 'yes')}
+              >
+                Yes
+              </button>
+              <button
+                className={selectedButtons[time.time_id] === 'no' ? 'button-highlight' : ''}
+                onClick={() => handleVoteClick(time.time_id, 'no')}
+              >
+                No
+              </button>
             </div>
           </div>
         ))}
       </div>
+      <button onClick={handleSubmitVotes}>Send Response</button>
     </div>
   );
 }
