@@ -3,6 +3,43 @@ import './App.css';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
+function ChoicePage() {
+  const navigate = useNavigate();
+  const [eventId, setEventId] = useState('');
+
+  const handleGoToCreateMeeting = () => {
+    navigate('/create_meeting');
+  };
+
+  const handleGoToJoinSession = () => {
+    if (eventId.trim() !== '') {
+      navigate(`/join_session/${eventId}`);
+    } else {
+      alert('Please enter a valid event ID');
+    }
+  };
+
+  return (
+    <div className="choice-page">
+      <h1>Welcome to Time Scheduler</h1>
+      <div className="tiles-container">
+        <div className="tile" onClick={handleGoToCreateMeeting}>
+          <h2>Create a Meeting</h2>
+        </div>
+        <div className="tile">
+          <h2>Join a Session</h2>
+          <input
+            type="text"
+            placeholder="Enter Event ID"
+            value={eventId}
+            onChange={(e) => setEventId(e.target.value)}
+          />
+          <button onClick={handleGoToJoinSession}>Join</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Funkcja do sprawdzania sesji
 async function CheckSession(event_id) {
@@ -21,13 +58,13 @@ async function CheckSession(event_id) {
 }
 
 // Komponent JoinSession
-function JoinSession({ event_id }) {
+function JoinSession() {
+  const { event_id } = useParams(); // Pobieranie event_id z URL
   const [sessionExists, setSessionExists] = useState(null); // Przechowywanie stanu sesji
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
-
 
   // Sprawdź sesję po załadowaniu komponentu
   useEffect(() => {
@@ -42,7 +79,7 @@ function JoinSession({ event_id }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = { name, email };
-  
+    
     fetch('http://localhost:8000/api/create_user/', {
       method: 'POST',
       headers: {
@@ -52,18 +89,18 @@ function JoinSession({ event_id }) {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Response data:", data); 
+        console.log("Response data:", data);
         if (data.message === 'User created successfully!') {
           // Zapisz user_id w localStorage
           localStorage.setItem('user_id', data.user_id);
           // Przejdź do strony głosowania
           navigate(`/voting_page/${event_id}`);
         } else {
-          setMessage('Server did not recive user_id');
+          setMessage('Server did not receive user_id');
         }
       })
       .catch((error) => {
-        setMessage('An error occurred. Please try again111.');
+        setMessage('An error occurred. Please try again.');
       });
   };
 
@@ -80,11 +117,11 @@ function JoinSession({ event_id }) {
           <div>
             <label>
               Name:
-              <input 
-                type="text" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                required 
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
               />
             </label>
           </div>
@@ -92,11 +129,11 @@ function JoinSession({ event_id }) {
           <div>
             <label>
               Email:
-              <input 
-                type="email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                required 
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </label>
           </div>
@@ -115,7 +152,7 @@ function JoinSession({ event_id }) {
 }
 
 function VotingPage() {
-  const { event_id } = useParams();  // Pobieranie event_id z URL
+  const { event_id } = useParams(); // Pobieranie event_id z URL
   const [proposedTimes, setProposedTimes] = useState([]);
   const [selectedButtons, setSelectedButtons] = useState({});
 
@@ -134,8 +171,8 @@ function VotingPage() {
       }
     }
 
-    fetchProposedTimes();
-  }, [event_id]); // Zależność od event_id
+    fetchProposedTimes(); 
+  }, [event_id]);
 
   const handleVoteClick = (timeId, voteType) => {
     setSelectedButtons(prevState => ({
@@ -145,22 +182,22 @@ function VotingPage() {
   };
 
   const handleSubmitVotes = async () => {
-    const user_id = localStorage.getItem('user_id');  // Pobranie user_id z localStorage
+    const user_id = localStorage.getItem('user_id');
     if (!user_id) {
       alert('User not logged in');
       return;
     }
-  
+
     const votes = Object.keys(selectedButtons).map(timeId => ({
       time_id: timeId,
       vote: selectedButtons[timeId],
     }));
-  
+
     const requestData = {
       user_id: user_id,
       votes: votes,
     };
-  
+
     try {
       const response = await fetch(`http://localhost:8000/api/event/${event_id}/submit_votes/`, {
         method: 'POST',
@@ -169,7 +206,7 @@ function VotingPage() {
         },
         body: JSON.stringify(requestData),
       });
-  
+
       if (response.ok) {
         const responseData = await response.json();
         alert(responseData.message || 'Votes submitted successfully');
@@ -181,7 +218,7 @@ function VotingPage() {
       alert('Error submitting votes');
     }
   };
-  
+
   return (
     <div className="voting-page">
       <h1>Voting Page</h1>
@@ -220,8 +257,9 @@ export default function App() {
     <Router>
       <Routes>
         {/* Główna ścieżka */}
-        <Route path="/" element={<JoinSession event_id={1} />} />
-        {/* Ścieżka do Voting Page z dynamicznym parametrem event_id */}
+        <Route path="/" element={<ChoicePage />} />
+        <Route path="/create_meeting" element={<div>Meeting Manager (TBD)</div>} />{/*Tutaj trzba zamienic diva na naze_funkcji do tworenia eventow */}
+        <Route path="/join_session/:event_id" element={<JoinSession />} />
         <Route path="/voting_page/:event_id" element={<VotingPage />} />
       </Routes>
     </Router>

@@ -58,7 +58,6 @@ button:hover {
 }
 
 /* Główny kontener prostokąta */
-/* Główny prostokąt */
 .tile {
   background-color: #f9f9f9;
   border: 1px solid #ddd;
@@ -138,4 +137,10 @@ button:hover {
   border: 20px solid blue; /* Kolor obramowania */
   border-radius: 5px;    /* Zaokrąglenie krawędzi (opcjonalne) */
   box-shadow: 0 0 5px blue; /* Efekt podświetlenia (opcjonalne) */
+}
+
+/* Style dla Choice-Page */
+.choice-page {
+  text-align: center;
+  padding: 20px; 
 }
