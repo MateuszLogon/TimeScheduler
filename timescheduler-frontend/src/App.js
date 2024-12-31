@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
+import Calendar from 'react-calendar'
 
 function ChoicePage() {
   const navigate = useNavigate();
@@ -251,6 +252,169 @@ function VotingPage() {
   );
 }
 
+function CreateSession() {
+  const [meeting_address, setMeetingAddress] = useState('');
+  const [name, setName] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [dates, setDates] = useState([]);
+  const totalHours = 24;
+  const blockWidth = 60; 
+  const [timeBlocks, setTimeBlocks] = useState(
+      Array(totalHours).fill(false)
+  );
+  const [timePeriods, setTimePeriods] = useState([]);
+  const [message, setMessage] = useState('');
+
+  // Toggle block selection
+  const toggleBlock = (index) => {
+      const updatedBlocks = [...timeBlocks];
+      updatedBlocks[index] = !updatedBlocks[index];
+      setTimeBlocks(updatedBlocks);
+  };
+
+  // Extract contiguous time periods
+  const extractTimePeriods = () => {
+      const periods = [];
+      let start = null;
+
+      timeBlocks.forEach((isSelected, index) => {
+          if (isSelected && start === null) {
+              // Start a new period
+              start = index;
+          } else if (!isSelected && start !== null) {
+              // End the current period
+              periods.push([start, index - 1]);
+              start = null;
+          }
+      });
+
+      // Handle case where the last block is part of a period
+      if (start !== null) {
+          periods.push([start, timeBlocks.length - 1]);
+      }
+
+      const formattedPeriods = periods.map(([start, end]) => ({
+          // start: `${start.toString().padStart(2, "0")}:00`,
+          // end: `${(end + 1).toString().padStart(2, "0")}:00`,
+          start: start,
+          end: end
+      }));
+      setTimePeriods(formattedPeriods);
+
+      let tmp_dates = [...dates];
+      for (const period of formattedPeriods) {
+          let tmp_date = new Date(date);
+          let duration = period.end - period.start + 1;
+          tmp_date.setHours(period.start, 0, 0, 0);
+          const index = tmp_dates.findIndex(date => (date[0].getTime() === tmp_date.getTime()) && (date[1] === duration));
+          if (index === -1) {
+            tmp_dates.push([tmp_date, duration]);
+          }
+          else {
+            tmp_dates.splice(index, 1);
+          }
+      }
+      setDates(tmp_dates);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const formData = { meeting_address, name, dates };
+  
+    fetch('http://localhost:8000/api/create_session/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Response data:", data); 
+        setMessage(data.message)
+      })
+      .catch((error) => {
+        setMessage('Wystąpił błąd. Spróbuj ponownie.');
+      });
+  };
+
+  return (
+    <div className="App">
+      <h1>Kreator sesji</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>
+            Adres:
+            <input type="text" value={meeting_address} onChange={(e) => setMeetingAddress(e.target.value)} required />
+          </label>
+        </div>
+        <div style={{ paddingRight: 42 }}>
+          <label>
+            Nazwa sesji:
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+          </label>
+        </div>
+        <div className="Calendar" style={{ paddingLeft: 400, paddingRight: 400 }}>
+          <label>Wybrana data: {date.getDate()}.{date.getMonth() + 1}.{date.getFullYear()}</label>
+          <Calendar value={date} onChange={setDate} />
+          <div>
+            {/* Hours and Blocks */}
+            <div style={{ display: "flex", alignItems: "center" }}>
+              {timeBlocks.map((_, index) => (
+                <div
+                  key={`hour-${index}`}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    width: `${blockWidth}px`,
+                  }}
+                >
+                  {/* Hour Label */}
+                  <span style={{ marginBottom: "5px", fontSize: "12px" }}>
+                    {index.toString().padStart(2, "0")}:00
+                  </span>
+                  {/* Time Block */}
+                  <div
+                    onClick={() => toggleBlock(index)}
+                    style={{
+                      height: "40px",
+                      width: "100%",
+                      backgroundColor: timeBlocks[index] ? "green" : "gray",
+                      border: "1px solid black",
+                      cursor: "pointer",
+                    }}
+                  ></div>
+                </div>
+              ))}
+            </div>
+            <button onClick={extractTimePeriods} style={{ marginTop: "20px" }} >
+              Dodaj przedziały czasowe
+            </button>
+            {/* Display Time Periods */}
+            <div style={{ marginTop: "20px" }}>
+              <h3>Wybrane przedziały czasowe:</h3>
+              {timePeriods.length === 0 ? (
+                <p>Nie wybrano żadnych przedziałów.</p>
+              ) : (
+                <>
+                  {dates.map((elem, index) =>
+                    <p>{elem[0].getDate()}.{elem[0].getMonth()}.{elem[0].getFullYear()}: {elem[0].getHours().toString().padStart(2, "0")}:00 - {(elem[0].getHours() + elem[1]).toString().padStart(2, "0")}:00</p>
+                  )}
+                </>
+              )}
+            </div>
+            <button type="submit">
+              Wyślij formularz na serwer
+            </button>
+          </div>
+        </div>
+      </form>
+      {message && <p>{message}</p>}
+    </div>
+  );
+}
+
 // Komponent główny - App
 export default function App() {
   return (
@@ -258,7 +422,7 @@ export default function App() {
       <Routes>
         {/* Główna ścieżka */}
         <Route path="/" element={<ChoicePage />} />
-        <Route path="/create_meeting" element={<div>Meeting Manager (TBD)</div>} />{/*Tutaj trzba zamienic diva na naze_funkcji do tworenia eventow */}
+        <Route path="/create_meeting" element={<CreateSession />} />
         <Route path="/join_session/:event_id" element={<JoinSession />} />
         <Route path="/voting_page/:event_id" element={<VotingPage />} />
       </Routes>

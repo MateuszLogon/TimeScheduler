@@ -3,7 +3,6 @@ from django.http import JsonResponse
 from .models import User, Event
 from rest_framework import generics
 from .serializers import UserSerializer
-
 from rest_framework.decorators import api_view
 from rest_framework import status
 from .models import ProposedTime
@@ -11,6 +10,7 @@ from datetime import timedelta
 from django.views.decorators.csrf import csrf_exempt
 from .models import ProposedTime, Vote, Participant, User
 import json
+from datetime import datetime, timedelta
 
 
 @csrf_exempt
@@ -99,3 +99,30 @@ def create_user(request):
                 return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return JsonResponse({'message': 'User already exists!'}, status=status.HTTP_226_IM_USED)
+
+
+@api_view(['POST'])
+def create_session(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            print(f'JSON body: {data}')
+
+            session_name = data["name"]
+            arr_datetime_str = data["dates"]
+            # address = data["meeting_address"]
+            e = Event(title=session_name, is_finished=False)
+            e.save()
+            print(f"Created event {e}")
+
+            for datetime_str in arr_datetime_str:
+                duration = datetime_str[1]
+                datetime_obj = datetime.strptime(datetime_str[0], "%Y-%m-%dT%H:%M:%S.%fZ")
+                pt = ProposedTime(event=e, proposed_time=datetime_obj, length=duration)
+                pt.save()
+                print(f"Created Proposed time: {pt}")
+            
+            return JsonResponse({'message': f'Session created successfully! Event id {e.event_id}'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': f'Session couldn\'t be created! Error msg: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

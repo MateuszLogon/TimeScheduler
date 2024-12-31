@@ -23,7 +23,7 @@ class ProposedTime(models.Model):
     time_id = models.AutoField(primary_key=True)  
     event = models.ForeignKey(Event, on_delete=models.CASCADE)  
     proposed_time = models.DateTimeField()  
-    length = models.DurationField()  
+    length = models.IntegerField()  
 
     def __str__(self):
         return f'{self.event.title} - {self.proposed_time}' 
