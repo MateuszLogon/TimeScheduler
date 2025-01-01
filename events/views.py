@@ -11,7 +11,10 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import ProposedTime, Vote, Participant, User
 import json
 from datetime import datetime, timedelta
+import logging
+from django.utils.dateformat import DateFormat
 
+logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def submit_votes(request, event_id):
@@ -99,18 +102,23 @@ def check_session(request, event_id):
 def create_user(request):
     if request.method == 'POST':
         user = UserSerializer(data=request.data)
-        
+
         if user.is_valid():
             try:
                 new_user = user.save()
                 print(f"User created with user_id: {new_user.user_id}")
 
-                return JsonResponse({'message': 'User created successfully!', 'user_id': new_user.user_id}, status=status.HTTP_201_CREATED)
+                return JsonResponse({
+                    'message': 'User created successfully!',
+                    'user_id': new_user.user_id
+                }, status=201) 
+
             except Exception as e:
                 print(f"Error creating user: {str(e)}")
-                return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse({'error': str(e)}, status=400)
+
         else:
-            return JsonResponse({'message': 'User already exists!'}, status=status.HTTP_226_IM_USED)
+            return JsonResponse({'message': 'User already exists!'}, status=226)
 
 
 @api_view(['POST'])
@@ -135,3 +143,65 @@ def create_session(request):
         except Exception as e:
             print(f'[CREATE_SESSION] Error msg: {e}')
             return JsonResponse({'message': f'Session couldn\'t be created! Error msg: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+           
+@api_view(['POST'])
+def add_participant(request):
+    if request.method == 'POST':
+        try:
+            # Pobieranie user_id i event_id z request.data
+            user_id = request.data.get('user_id')
+            event_id = request.data.get('event_id')
+            
+            # Logowanie wejściowych danych
+            logger.debug(f"Received user_id: {user_id}, event_id: {event_id}")
+
+            # Znajdź użytkownika na podstawie user_id
+            user = User.objects.get(user_id=user_id)
+            event = Event.objects.get(event_id=event_id)
+
+            # Dodaj uczestnika do wydarzenia
+            participant = Participant.objects.create(user=user, event=event)
+
+            # Logowanie sukcesu
+            logger.debug(f"Participant added: {participant}")
+
+            return JsonResponse({
+                'message': 'Participant added successfully!',
+                'user_id': user_id,
+                'event_id': event_id
+            }, status=status.HTTP_201_CREATED)
+        except User.DoesNotExist:
+            logger.error(f"User with user_id {user_id} not found.")
+            return JsonResponse({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Event.DoesNotExist:
+            logger.error(f"Event with event_id {event_id} not found.")
+            return JsonResponse({'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error while adding participant: {str(e)}")
+            return JsonResponse({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+
+@api_view(['GET'])
+def get_results(request, event_id):
+    try:
+        event = Event.objects.get(event_id=event_id)
+        proposed_times = ProposedTime.objects.filter(event=event)
+
+        results = []
+        for proposed_time in proposed_times:
+            yes_votes = Vote.objects.filter(proposed_time=proposed_time, is_available=True).count()
+            no_votes = Vote.objects.filter(proposed_time=proposed_time, is_available=False).count()
+
+            # Formatowanie daty
+            formatted_time = DateFormat(proposed_time.proposed_time).format('d-m-Y H:i')
+
+            results.append({
+                'time_id': proposed_time.time_id,
+                'proposed_time': formatted_time,  # Sformatowana data
+                'yes_votes': yes_votes,
+                'no_votes': no_votes
+            })
+
+        return JsonResponse(results, safe=False)
+
+    except Event.DoesNotExist:
+        return JsonResponse({'message': 'Event not found'}, status=404)
