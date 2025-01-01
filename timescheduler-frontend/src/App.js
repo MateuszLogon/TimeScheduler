@@ -6,17 +6,26 @@ import Calendar from 'react-calendar'
 
 function ChoicePage() {
   const navigate = useNavigate();
-  const [eventId, setEventId] = useState('');
+  const [joinEventId, setJoinEventId] = useState('');
+  const [resultsEventId, setResultsEventId] = useState('');
 
   const handleGoToCreateMeeting = () => {
     navigate('/create_meeting');
   };
 
   const handleGoToJoinSession = () => {
-    if (eventId.trim() !== '') {
-      navigate(`/join_session/${eventId}`);
+    if (joinEventId.trim() !== '') {
+      navigate(`/join_session/${joinEventId}`);
     } else {
-      alert('Please enter a valid event ID');
+      alert('Please enter a valid event ID for joining');
+    }
+  };
+
+  const handleGoToResults = () => {
+    if (resultsEventId.trim() !== '') {
+      navigate(`/results/${resultsEventId}`); // Przekierowanie do wyników dla konkretnego eventId
+    } else {
+      alert('Please enter a valid event ID for results');
     }
   };
 
@@ -32,10 +41,20 @@ function ChoicePage() {
           <input
             type="text"
             placeholder="Enter Event ID"
-            value={eventId}
-            onChange={(e) => setEventId(e.target.value)}
+            value={joinEventId} // Użycie oddzielnego stanu dla Join a Session
+            onChange={(e) => setJoinEventId(e.target.value)} // Zmiana stanu tylko dla Join a Session
           />
           <button onClick={handleGoToJoinSession}>Join</button>
+        </div>
+        <div className="tile">
+          <h2>View Results</h2>
+          <input
+            type="text"
+            placeholder="Enter Event ID"
+            value={resultsEventId} // Użycie oddzielnego stanu dla View Results
+            onChange={(e) => setResultsEventId(e.target.value)} // Zmiana stanu tylko dla View Results
+          />
+          <button onClick={handleGoToResults}>View Results</button>
         </div>
       </div>
     </div>
@@ -81,6 +100,7 @@ function JoinSession() {
     e.preventDefault();
     const formData = { name, email };
     
+    // Tworzymy użytkownika
     fetch('http://localhost:8000/api/create_user/', {
       method: 'POST',
       headers: {
@@ -88,20 +108,40 @@ function JoinSession() {
       },
       body: JSON.stringify(formData),
     })
-      .then((response) => response.json())
+      .then((response) => response.json()) // Parsowanie odpowiedzi JSON
       .then((data) => {
         console.log("Response data:", data);
+
         if (data.message === 'User created successfully!') {
-          // Zapisz user_id w localStorage
-          localStorage.setItem('user_id', data.user_id);
-          // Przejdź do strony głosowania
-          navigate(`/voting_page/${event_id}`);
+          const user_id = data.user_id;
+          localStorage.setItem('user_id', user_id);
+
+          // Tworzymy uczestnika
+          const participantData = { user_id, event_id };
+
+          fetch('http://localhost:8000/api/add_participant/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(participantData),
+          })
+            .then((response) => response.json()) // Parsowanie odpowiedzi JSON dla add_participant
+            .then((data) => {
+              console.log("Participant added:", data);
+              navigate(`/voting_page/${event_id}`);
+            })
+            .catch((error) => {
+              setMessage('Failed to add participant.');
+              console.error('Error adding participant:', error);
+            });
         } else {
           setMessage('Server did not receive user_id');
         }
       })
       .catch((error) => {
-        setMessage('An error occurred. Please try again.');
+        setMessage('An error occurred while creating the user. Please try again.');
+        console.error('Error creating user:', error);
       });
   };
 
@@ -415,6 +455,84 @@ function CreateSession() {
   );
 }
 
+function ResultsPage() {
+  const { event_id } = useParams(); // Pobieranie event_id z URL
+  const [proposedTimes, setProposedTimes] = useState([]); // Lista proponowanych czasów
+
+  useEffect(() => {
+    async function fetchProposedTimes() {
+      try {
+        const response = await fetch(`http://localhost:8000/api/event/${event_id}/results/`);
+        if (response.ok) {
+          const data = await response.json();
+          setProposedTimes(data); // Ustawienie danych o czasach
+        } else {
+          console.error('Failed to fetch proposed times');
+        }
+      } catch (error) {
+        console.error('Error fetching proposed times:', error);
+      }
+    }
+
+    fetchProposedTimes();
+  }, [event_id]);
+
+  // Funkcja do formatowania daty i czasu
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    
+    // Formatowanie daty w formacie: "Monday 01 January 2024"
+    const dayOfWeek = date.toLocaleString('en-GB', { weekday: 'long' });
+    const day = String(date.getDate()).padStart(2, '0'); // Użycie padStart do dodania "0" przed dniem, jeśli jest jednocyfrowy
+    const month = date.toLocaleString('en-GB', { month: 'long' });
+    const year = date.getFullYear();
+    const formattedDate = `${dayOfWeek} ${day} ${month} ${year}`;
+
+    // Formatowanie godzin: "10:00 - 11:00"
+    const startTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const endTime = new Date(date.getTime() + 60 * 60 * 1000); // Dodajemy 1 godzinę do czasu
+    const endTimeFormatted = endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    return { formattedDate, startTime, endTimeFormatted }; // Zwracamy datę i czas oddzielnie
+  };
+
+  return (
+    <div className="results-page">
+      <h1>Results Page</h1>
+      <div className="tiles-container">
+        {proposedTimes.map(time => {
+          const { formattedDate, startTime, endTimeFormatted } = formatDate(time.proposed_time);
+
+          return (
+            <div key={time.time_id} className="results-tile">
+              <div className="results-time-info">
+                <div className="results-time">
+                  <p>{formattedDate}</p>
+                </div>
+                <div className="results-time-separator" /> {/* Separator | */}
+                <div className="results-time">
+                  <p>{startTime} - {endTimeFormatted}</p>
+                </div>
+              </div>
+              <div className="results-vote-info">
+                {/* Wyświetlanie liczby głosów "Yes" */}
+                <div className="results-vote-count">
+                  <strong>Yes: </strong>{time.yes_votes || 0}
+                </div>
+                {/* Wyświetlanie liczby głosów "No" */}
+                <div className="results-vote-count">
+                  <strong>No: </strong>{time.no_votes || 0}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
 // Komponent główny - App
 export default function App() {
   return (
@@ -425,6 +543,7 @@ export default function App() {
         <Route path="/create_meeting" element={<CreateSession />} />
         <Route path="/join_session/:event_id" element={<JoinSession />} />
         <Route path="/voting_page/:event_id" element={<VotingPage />} />
+        <Route path="/results/:event_id" element={<ResultsPage />} />
       </Routes>
     </Router>
   );

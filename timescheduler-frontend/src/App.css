@@ -144,3 +144,101 @@ button:hover {
   text-align: center;
   padding: 20px; 
 }
+
+/* Result Page */
+.results-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.results-page h1 {
+  text-align: center;
+}
+
+/* Główny kontener prostokąta */
+.results-tile {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  width: 700px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 5px auto;
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: center;
+  position: relative;
+  height: 20px;
+}
+
+/* Sekcja .results-time-info */
+.results-time-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 2;
+  padding-right: 20px;
+  position: relative;
+  height: 100%;
+}
+
+/* Rozdzielający | */
+.results-time-separator {
+  border-left: 2px solid #ddd;
+  height: 100%;
+  margin: 0 20px;
+}
+
+/* Sekcja z czasem */
+.results-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Sekcja z głosami */
+.results-vote-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-right: 20px;
+  padding-left: 20px;
+  height: 100%;
+}
+
+/* Pionowa linia oddzielająca głosy */
+.results-vote-info::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #ddd;
+}
+
+/* Liczba głosów */
+.results-vote-count {
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #e0e0e0;
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Styl dla głosów "Yes" */
+.results-vote-count:first-child {
+  background-color: #4caf50;
+  color: white;
+}
+
+/* Styl dla głosów "No" */
+.results-vote-count:last-child {
+  background-color: #f44336;
+  color: white;
+}
