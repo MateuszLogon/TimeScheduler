@@ -56,22 +56,34 @@ def submit_votes(request, event_id):
         
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
-
+def convert_hhmmss_to_seconds(hhmmss):
+    hours = hhmmss // 10000
+    minutes = (hhmmss % 10000) // 100
+    seconds = hhmmss % 100
+    return hours * 3600 + minutes * 60 + seconds
 
 def get_proposed_times(request, event_id):
     proposed_times = ProposedTime.objects.filter(event_id=event_id)
-    data = [
-        {
+    data = []
+
+    for proposed_time in proposed_times:
+        # Konwersja HHMMSS na sekundy
+        length_seconds = convert_hhmmss_to_seconds(proposed_time.length)
+        length_timedelta = timedelta(seconds=length_seconds)
+
+        # Obliczanie czasu końca
+        end_time = proposed_time.proposed_time + length_timedelta
+
+        data.append({
             'day': proposed_time.proposed_time.strftime('%A'),
             'day_number': proposed_time.proposed_time.strftime('%d'),
             'month': proposed_time.proposed_time.strftime('%B'),
             'year': proposed_time.proposed_time.strftime('%Y'),
             'start_time': proposed_time.proposed_time.strftime('%H:%M'),
-            'end_time': (proposed_time.proposed_time + timedelta(hours=1)).strftime('%H:%M'),
+            'end_time': end_time.strftime('%H:%M'),
             'time_id': proposed_time.time_id
-        }
-        for proposed_time in proposed_times
-    ]
+        })
+
     return JsonResponse(data, safe=False)
 
 @api_view(['GET'])
