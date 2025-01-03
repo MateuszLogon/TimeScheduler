@@ -478,22 +478,44 @@ function ResultsPage() {
   }, [event_id]);
 
   // Funkcja do formatowania daty i czasu
+  // const formatDate = (dateString) => {
+  //   const date = new Date(dateString);
+    
+  //   // Formatowanie daty w formacie: "Monday 01 January 2024"
+  //   const dayOfWeek = date.toLocaleString('en-GB', { weekday: 'long' });
+  //   const day = String(date.getDate()).padStart(2, '0'); // Użycie padStart do dodania "0" przed dniem, jeśli jest jednocyfrowy
+  //   const month = date.toLocaleString('en-GB', { month: 'long' });
+  //   const year = date.getFullYear();
+  //   const formattedDate = `${dayOfWeek} ${day} ${month} ${year}`;
+
+  //   // Formatowanie godzin: "10:00 - 11:00"
+  //   const startTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  //   const endTime = new Date(date.getTime() + 60 * 60 * 1000); // Dodajemy 1 godzinę do czasu
+  //   const endTimeFormatted = endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  //   return { formattedDate, startTime, endTimeFormatted }; // Zwracamy datę i czas oddzielnie
+  // };
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     
+    // Sprawdzamy, czy data jest prawidłowa
+    if (isNaN(date)) {
+      console.error('Invalid Date:', dateString);
+      return { formattedDate: 'Invalid Date', startTime: '', endTimeFormatted: '' };
+    }
+  
     // Formatowanie daty w formacie: "Monday 01 January 2024"
     const dayOfWeek = date.toLocaleString('en-GB', { weekday: 'long' });
-    const day = String(date.getDate()).padStart(2, '0'); // Użycie padStart do dodania "0" przed dniem, jeśli jest jednocyfrowy
+    const day = String(date.getDate()).padStart(2, '0');
     const month = date.toLocaleString('en-GB', { month: 'long' });
     const year = date.getFullYear();
     const formattedDate = `${dayOfWeek} ${day} ${month} ${year}`;
-
-    // Formatowanie godzin: "10:00 - 11:00"
+  
     const startTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const endTime = new Date(date.getTime() + 60 * 60 * 1000); // Dodajemy 1 godzinę do czasu
     const endTimeFormatted = endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    return { formattedDate, startTime, endTimeFormatted }; // Zwracamy datę i czas oddzielnie
+  
+    return { formattedDate, startTime, endTimeFormatted };
   };
 
   return (

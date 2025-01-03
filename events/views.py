@@ -21,12 +21,11 @@ def submit_votes(request, event_id):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            print(f"Received data: {data}")  # Zaloguj otrzymane dane
+            print(f"Received data: {data}") 
 
-            votes = data.get('votes', [])  # Oczekujemy, że votes będzie listą, a nie słownikiem
+            votes = data.get('votes', []) 
             user_id = data.get('user_id')
 
-            # Sprawdź, czy użytkownik istnieje
             try:
                 user = User.objects.get(user_id=user_id)
             except User.DoesNotExist:
@@ -38,14 +37,13 @@ def submit_votes(request, event_id):
                 vote = vote_entry.get('vote')
 
                 if not time_id or not vote:
-                    continue  # Jeśli brakuje czasu lub głosu, pomijamy ten wpis
+                    continue  
 
                 try:
                     proposed_time = ProposedTime.objects.get(time_id=time_id)
                 except ProposedTime.DoesNotExist:
                     return JsonResponse({"error": f"Proposed time with id {time_id} not found"}, status=404)
                 
-                # Aktualizuj lub twórz nowy głos
                 Vote.objects.update_or_create(
                     user=user,
                     proposed_time=proposed_time,
@@ -185,12 +183,11 @@ def get_results(request, event_id):
             yes_votes = Vote.objects.filter(proposed_time=proposed_time, is_available=True).count()
             no_votes = Vote.objects.filter(proposed_time=proposed_time, is_available=False).count()
 
-            # Formatowanie daty
-            formatted_time = DateFormat(proposed_time.proposed_time).format('d-m-Y H:i')
+            formatted_time = proposed_time.proposed_time.isoformat()
 
             results.append({
                 'time_id': proposed_time.time_id,
-                'proposed_time': formatted_time,  # Sformatowana data
+                'proposed_time': formatted_time, 
                 'yes_votes': yes_votes,
                 'no_votes': no_votes
             })
