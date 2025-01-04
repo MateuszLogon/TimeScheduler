@@ -33,9 +33,29 @@ services:
     networks:
       - db_network
 
+  backup:
+    image: debian:latest
+    container_name: backup_service
+    depends_on:
+      - mysql-primary
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - backupy:/backup
+    command: >
+      bash -c "apt update && apt install -y default-mysql-client cron &&  # Instalacja narzędzi mysqldump i cron
+              mkdir -p /etc/cron.d &&  # Tworzenie katalogu cron.d, jeśli nie istnieje
+              echo '* * * * * root mysqldump -h 172.18.0.2 -u root -proot --port=50400 timescheduler > /backup/db_backup.sql' > /etc/cron.d/backup &&  # Zadanie cron do wykonywania kopii zapasowej co minutę
+              chmod 0644 /etc/cron.d/backup && 
+              crontab /etc/cron.d/backup &&  
+              cron -f"  # Uruchomienie demona cron
+    networks:
+      - db_network
+
 volumes:
   master_data:
   slave_data:
+  backupy:
 
 networks:
   db_network:
