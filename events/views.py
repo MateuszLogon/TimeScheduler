@@ -185,9 +185,12 @@ def get_results(request, event_id):
 
             formatted_time = proposed_time.proposed_time.isoformat()
 
+            duration = proposed_time.length
+
             results.append({
                 'time_id': proposed_time.time_id,
                 'proposed_time': formatted_time, 
+                'duration': duration,
                 'yes_votes': yes_votes,
                 'no_votes': no_votes
             })

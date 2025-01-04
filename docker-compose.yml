@@ -45,7 +45,7 @@ services:
     command: >
       bash -c "apt update && apt install -y default-mysql-client cron &&  # Instalacja narzędzi mysqldump i cron
               mkdir -p /etc/cron.d &&  # Tworzenie katalogu cron.d, jeśli nie istnieje
-              echo '* * * * * root mysqldump -h 172.18.0.2 -u root -proot --port=50400 timescheduler > /backup/db_backup.sql' > /etc/cron.d/backup &&  # Zadanie cron do wykonywania kopii zapasowej co minutę
+              echo '* * * * * root mysqldump -h mysql-primary -u root -proot --port=50400 timescheduler > /backup/db_backup.sql' > /etc/cron.d/backup &&  # Zadanie cron do wykonywania kopii zapasowej co minutę
               chmod 0644 /etc/cron.d/backup && 
               crontab /etc/cron.d/backup &&  
               cron -f"  # Uruchomienie demona cron

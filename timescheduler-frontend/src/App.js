@@ -495,7 +495,7 @@ function ResultsPage() {
 
   //   return { formattedDate, startTime, endTimeFormatted }; // Zwracamy datę i czas oddzielnie
   // };
-  const formatDate = (dateString) => {
+  const formatDate = (dateString, duration) => {
     const date = new Date(dateString);
     
     // Sprawdzamy, czy data jest prawidłowa
@@ -512,7 +512,7 @@ function ResultsPage() {
     const formattedDate = `${dayOfWeek} ${day} ${month} ${year}`;
   
     const startTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const endTime = new Date(date.getTime() + 60 * 60 * 1000); // Dodajemy 1 godzinę do czasu
+    const endTime = new Date(date.getTime() + 60 * 60 * 1000 * duration); // Dodajemy 1 godzinę do czasu
     const endTimeFormatted = endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   
     return { formattedDate, startTime, endTimeFormatted };
@@ -523,7 +523,7 @@ function ResultsPage() {
       <h1>Results Page</h1>
       <div className="tiles-container">
         {proposedTimes.map(time => {
-          const { formattedDate, startTime, endTimeFormatted } = formatDate(time.proposed_time);
+          const { formattedDate, startTime, endTimeFormatted } = formatDate(time.proposed_time, time.duration);
 
           return (
             <div key={time.time_id} className="results-tile">
