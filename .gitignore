@@ -1,6 +1,7 @@
 djangoenv
 polls
 certs
+certs_backup
 TimeScheduler/__pycache__
 events/__pycache__
 events/migrations/__pycache__
