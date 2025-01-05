@@ -58,7 +58,12 @@ def submit_votes(request, event_id):
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
 def get_proposed_times(request, event_id):
-    proposed_times = ProposedTime.objects.filter(event_id=event_id)
+    # SQL Injection
+    query = f"SELECT * FROM events_proposedtime WHERE event_id = '{event_id}'"
+    proposed_times = ProposedTime.objects.raw(query)
+    # Ochrona przed SQL Injection przez parametryzację danych użytkownika.
+    # query = f"SELECT * FROM events_proposedtime WHERE event_id = %s"
+    # proposed_times = ProposedTime.objects.raw(query, [event_id])
     data = []
 
     for proposed_time in proposed_times:
@@ -84,7 +89,12 @@ def get_proposed_times(request, event_id):
 @api_view(['GET'])
 def check_session(request, event_id):
     try:
-        event = Event.objects.get(event_id=event_id)
+        # SQL Injection.
+        query = f"SELECT * FROM events_event WHERE event_id = '{event_id}'"
+        event = Event.objects.raw(query)
+        # Ochrona przed SQL Injection przez parametryzację danych użytkownika.
+        # query = f"SELECT * FROM events_event WHERE event_id = %s"
+        # event = Event.objects.raw(query, [event_id])
         return JsonResponse({'message': f'Session exists!'}, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return JsonResponse({}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
